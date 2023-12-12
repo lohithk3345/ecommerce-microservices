@@ -1,9 +1,9 @@
 package rpc
 
 import (
+	buffers "ecommerce/buffers/protobuffs"
 	services "ecommerce/services/user"
 	"ecommerce/types"
-	userpb "ecommerce/userpb/protobuffs"
 	"log"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,14 +14,14 @@ import (
 
 type Server struct {
 	db *mongo.Database
-	userpb.UnimplementedUserServiceServer
+	buffers.UnimplementedUserServiceServer
 }
 
 func NewServer(db *mongo.Database) *Server {
 	return &Server{db: db}
 }
 
-func (s *Server) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) (*userpb.CreateUserResponse, error) {
+func (s *Server) CreateUser(ctx context.Context, req *buffers.CreateUserRequest) (*buffers.CreateUserResponse, error) {
 	newUser := types.ConvertRPCRequest(req)
 	_, err := services.NewUserService(s.db).CreateUser(newUser)
 	if err != nil {
@@ -30,7 +30,7 @@ func (s *Server) CreateUser(ctx context.Context, req *userpb.CreateUserRequest) 
 	logger := log.Default()
 	logger.Println("Success")
 
-	return &userpb.CreateUserResponse{
+	return &buffers.CreateUserResponse{
 		Status: 200,
 		Body:   "User Created",
 	}, nil

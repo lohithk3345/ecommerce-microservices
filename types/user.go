@@ -1,7 +1,7 @@
 package types
 
 import (
-	userpb "ecommerce/userpb/protobuffs"
+	buffers "ecommerce/buffers/protobuffs"
 	"fmt"
 	"math/rand"
 	"time"
@@ -28,7 +28,7 @@ func (u UserRequest) Convert() *User {
 	}
 }
 
-func ConvertRPCRequest(req *userpb.CreateUserRequest) *User {
+func ConvertRPCRequest(req *buffers.CreateUserRequest) *User {
 	return &User{
 		Name:    req.Name,
 		Age:     int(req.Age),
