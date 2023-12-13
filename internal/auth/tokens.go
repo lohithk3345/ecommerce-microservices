@@ -18,7 +18,19 @@ func GenerateAccessToken(id string) (string, error) {
 	claims := Claims{
 		Id: id,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute).Unix(),
+			ExpiresAt: time.Now().Add(5 * time.Minute).Unix(),
+		},
+	}
+
+	signed := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
+	return signed.SignedString([]byte(config.EnvMap[constants.TOKEN_SECRET]))
+}
+
+func GenerateRefreshToken(id string) (string, error) {
+	claims := Claims{
+		Id: id,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(8760 * time.Hour).Unix(),
 		},
 	}
 

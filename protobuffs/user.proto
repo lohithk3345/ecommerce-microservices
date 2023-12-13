@@ -18,6 +18,10 @@ message CreateUserResponse {
     string body = 2;
 }
 
+message UpdateUserRequest {
+    
+}
+
 service UserService {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 }

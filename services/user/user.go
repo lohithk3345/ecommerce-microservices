@@ -1,7 +1,6 @@
 package services
 
 import (
-	"ecommerce/internal/auth"
 	"ecommerce/internal/repositories"
 	"ecommerce/types"
 
@@ -20,11 +19,7 @@ func NewUserService(database *mongo.Database) *UserServices {
 }
 
 func (u UserServices) CreateUser(newUser *types.User) (interface{}, error) {
-	hash, errPass := auth.HashPassword([]byte("Hey"))
-	if errPass != nil {
-		return nil, errPass
-	}
-	newUser.AddHash(string(hash))
+	newUser.IsActive = true
 	result, err := u.userRepository.InsertUser(newUser)
 	if err != nil {
 		return nil, err
