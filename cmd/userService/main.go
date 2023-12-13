@@ -4,7 +4,7 @@ import (
 	apiHandlers "ecommerce/api/user"
 	buffers "ecommerce/buffers/protobuffs"
 	"ecommerce/internal/database"
-	rpc "ecommerce/rpc/handlers"
+	rpcHandlers "ecommerce/internal/rpcHandlers"
 	"log"
 	"net"
 	"net/http"
@@ -21,7 +21,7 @@ func setupGRPC(db *mongo.Database, wg *sync.WaitGroup) {
 	}
 
 	s := grpc.NewServer()
-	server := rpc.NewServer(db)
+	server := rpcHandlers.NewServer(db)
 	buffers.RegisterUserServiceServer(s, server)
 	log.Printf("Starting gRPC at: %s\n", "3000")
 	s.Serve(lis)

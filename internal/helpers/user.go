@@ -3,7 +3,9 @@ package helpers
 import (
 	"ecommerce/types"
 	"fmt"
+	"log"
 
+	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -34,4 +36,15 @@ func (Helper) ExtractUUIDFromInsertedID(insertedID interface{}) (*types.ID, erro
 	}
 
 	return &insertedData, nil
+}
+
+func (h Helper) GetToken(ctx *gin.Context) (types.Token, error) {
+	token := ctx.GetHeader("Authorization")
+	log.Println(token)
+	bearerFix := "Bearer "
+	if token == "" || len(token) < len(bearerFix) || token[:len(bearerFix)] != bearerFix {
+		return "", gin.Error{}
+	}
+	actualToken := token[len(bearerFix):]
+	return actualToken, nil
 }

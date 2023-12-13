@@ -5,6 +5,7 @@ import (
 	"ecommerce/config"
 	"ecommerce/constants"
 	"ecommerce/internal/auth"
+	"ecommerce/internal/helpers"
 	"log"
 	"net/http"
 
@@ -27,17 +28,14 @@ func ApiKeyCheck() gin.HandlerFunc {
 
 func CheckAccessTokenAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		token := ctx.GetHeader("Authorization")
-		log.Println(token)
-		bearerFix := "Bearer "
-		if token == "" || len(token) < len(bearerFix) || token[:len(bearerFix)] != bearerFix {
+		token, err := helpers.H.GetToken(ctx)
+		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Token"})
 			ctx.Abort()
 			return
 		}
-		actualToken := token[len(bearerFix):]
 
-		claims, err := auth.ValidateToken(actualToken)
+		claims, err := auth.ValidateToken(token)
 		if err != nil {
 			log.Println(err)
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -53,23 +51,14 @@ func CheckAccessTokenAuth() gin.HandlerFunc {
 
 func CheckRefreshTokenAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		token := ctx.GetHeader("Authorization")
-		log.Println(token)
-		bearerFix := "Bearer "
-		if token == "" || len(token) < len(bearerFix) || token[:len(bearerFix)] != bearerFix {
+		token, err := helpers.H.GetToken(ctx)
+		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Token"})
 			ctx.Abort()
 			return
 		}
-		actualToken := token[len(bearerFix):]
 
-		if !cache.RefreshTokenMap[actualToken] {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			ctx.Abort()
-			return
-		}
-
-		claims, err := auth.ValidateToken(actualToken)
+		claims, err := auth.ValidateToken(token)
 		if err != nil {
 			log.Println(err)
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
@@ -77,9 +66,15 @@ func CheckRefreshTokenAuth() gin.HandlerFunc {
 			return
 		}
 
+		if cache.RefreshTokenMap[claims.Id] != token {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			ctx.Abort()
+			return
+		}
+
 		ctx.Set("userId", claims.Id)
 
-		delete(cache.RefreshTokenMap, actualToken)
+		delete(cache.RefreshTokenMap, claims.Id)
 		ctx.Next()
 	}
 }

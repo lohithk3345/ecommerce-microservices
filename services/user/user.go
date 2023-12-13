@@ -18,14 +18,8 @@ func NewUserService(database *mongo.Database) *UserServices {
 	}
 }
 
-func (u UserServices) CreateUser(newUser *types.User) (interface{}, error) {
-	newUser.IsActive = true
-	result, err := u.userRepository.InsertUser(newUser)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
+func (u UserServices) CreateUser(newUser *types.User) (*types.ID, error) {
+	return u.userRepository.InsertUser(newUser)
 }
 
 func (u UserServices) FindById(id types.UserID) {

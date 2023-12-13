@@ -4,6 +4,7 @@ import (
 	middleware "ecommerce/api/middlewares/user"
 	"ecommerce/cache"
 	"ecommerce/internal/auth"
+	"ecommerce/internal/helpers"
 	services "ecommerce/services/user"
 	"ecommerce/types"
 	"log"
@@ -16,13 +17,15 @@ import (
 func SetupUserRouter(u *UserAPIHandlers) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	// router.Use()
-	// router.GET("/")
-	router.POST("/register", middleware.ApiKeyCheck(), u.registerUser)
-	router.POST("/login", middleware.ApiKeyCheck(), u.login)
+
+	router.Use(middleware.ApiKeyCheck())
+
+	router.POST("/register", u.registerUser)
+	router.POST("/login", u.login)
 	router.GET("/protected", middleware.CheckAccessTokenAuth(), u.protected)
 	router.GET("/refresh", middleware.CheckRefreshTokenAuth(), u.refresh)
-	router.GET("/logout")
+	router.GET("/logout", logout)
+
 	return router
 }
 
@@ -86,12 +89,28 @@ func (u UserAPIHandlers) login(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
-	cache.RefreshTokenMap[refreshToken] = true
+	cache.RefreshTokenMap[user.Id] = refreshToken
 	ctx.Header("Authorization", "Bearer "+accessToken)
 	ctx.JSON(http.StatusOK, gin.H{"accessToken": accessToken, "refreshToken": refreshToken})
 }
 
-// func logout() {}
+func logout(ctx *gin.Context) {
+	token, err := helpers.H.GetToken(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Missing Token"})
+		ctx.Abort()
+		return
+	}
+
+	claims, err := auth.ValidateToken(token)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		ctx.Abort()
+		return
+	}
+	delete(cache.RefreshTokenMap, claims.Id)
+}
 
 func (u UserAPIHandlers) protected(ctx *gin.Context) {
 	id, _ := ctx.Get("userId")
@@ -101,22 +120,22 @@ func (u UserAPIHandlers) protected(ctx *gin.Context) {
 }
 
 func (u UserAPIHandlers) refresh(ctx *gin.Context) {
-	id, _ := ctx.Get("userId")
+	id := ctx.MustGet("userId").(types.ID)
 	log.Println(id)
-	accessToken, errToken := auth.GenerateAccessToken(id.(string))
+	accessToken, errToken := auth.GenerateAccessToken(id)
 	if errToken != nil {
 		ctx.Abort()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
-	refreshToken, errRToken := auth.GenerateRefreshToken(id.(string))
+	refreshToken, errRToken := auth.GenerateRefreshToken(id)
 	if errRToken != nil {
 		ctx.Abort()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	cache.RefreshTokenMap[refreshToken] = true
+	cache.RefreshTokenMap[id] = refreshToken
 	ctx.Header("Authorization", "Bearer "+accessToken)
 	ctx.JSON(http.StatusOK, gin.H{"accessToken": accessToken, "refreshToken": refreshToken})
 }

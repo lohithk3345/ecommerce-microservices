@@ -1,3 +1,3 @@
 package cache
 
-var RefreshTokenMap map[string]bool = make(map[string]bool)
+var RefreshTokenMap map[string]string = make(map[string]string)

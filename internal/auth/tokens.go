@@ -3,6 +3,7 @@ package auth
 import (
 	"ecommerce/config"
 	"ecommerce/constants"
+	"ecommerce/types"
 	"fmt"
 	"time"
 
@@ -14,7 +15,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func GenerateAccessToken(id string) (string, error) {
+func GenerateAccessToken(id string) (types.ID, error) {
 	claims := Claims{
 		Id: id,
 		StandardClaims: jwt.StandardClaims{
@@ -23,10 +24,11 @@ func GenerateAccessToken(id string) (string, error) {
 	}
 
 	signed := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
-	return signed.SignedString([]byte(config.EnvMap[constants.TOKEN_SECRET]))
+	token, err := signed.SignedString([]byte(config.EnvMap[constants.TOKEN_SECRET]))
+	return token, err
 }
 
-func GenerateRefreshToken(id string) (string, error) {
+func GenerateRefreshToken(id string) (types.ID, error) {
 	claims := Claims{
 		Id: id,
 		StandardClaims: jwt.StandardClaims{
@@ -38,7 +40,7 @@ func GenerateRefreshToken(id string) (string, error) {
 	return signed.SignedString([]byte(config.EnvMap[constants.TOKEN_SECRET]))
 }
 
-func ValidateToken(tokenString string) (*Claims, error) {
+func ValidateToken(tokenString types.Token) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.EnvMap[constants.TOKEN_SECRET]), nil
 	})
