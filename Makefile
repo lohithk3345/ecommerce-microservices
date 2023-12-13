@@ -1,7 +1,7 @@
 all: build
 
 build:
-	@go build -o bin/ecommerce main.go
+	@go build -o bin/ecommerce ./cmd/userService
 
 clean:
 	@rm -rf bin/
@@ -10,7 +10,7 @@ build-run: build
 	@./bin/ecommerce
 
 runner:
-	@go run main.go
+	@go run ./cmd/userService
 
 run:
 	@./bin/ecommerce

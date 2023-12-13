@@ -12,10 +12,10 @@ func hashPassword(password []byte) ([]byte, error) {
 	return bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 }
 
-func VerifyHash(hash []byte) error {
-	return verifyHash(hash)
+func VerifyHash(hash []byte, password string) error {
+	return verifyHash(hash, password)
 }
 
-func verifyHash(hash []byte) error {
-	return bcrypt.CompareHashAndPassword(hash, []byte("Lohith@12"))
+func verifyHash(hash []byte, password string) error {
+	return bcrypt.CompareHashAndPassword(hash, []byte(password))
 }

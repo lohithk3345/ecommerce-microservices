@@ -26,7 +26,7 @@ func NewDatabase[T interface{}](database *mongo.Database, collection string) *Da
 	}
 }
 
-func (d *Database[T]) insertOne(object T) (types.Identifier, error) {
+func (d *Database[T]) insertOne(object T) (*types.ID, error) {
 	result, err := d.collection.InsertOne(context.Background(), object)
 	if err != nil {
 		errIn := err.(mongo.WriteException)
@@ -38,7 +38,7 @@ func (d *Database[T]) insertOne(object T) (types.Identifier, error) {
 		return nil, reporesult.StoreError{Code: 204, Message: err.Error()}
 	}
 	id, _ := H.ExtractUUIDFromInsertedID(result.InsertedID)
-	return &types.ID{UUID: id}, nil
+	return id, nil
 }
 
 func (d *Database[T]) findOne(filter interface{}) (*mongo.SingleResult, error) {

@@ -3,6 +3,7 @@ package apiHandlers
 import (
 	"ecommerce/config"
 	"ecommerce/constants"
+	"ecommerce/internal/auth"
 	services "ecommerce/services/user"
 	"ecommerce/types"
 	"log"
@@ -18,7 +19,7 @@ func SetupUserRouter(u *UserAPIHandlers) *gin.Engine {
 	// router.Use()
 	// router.GET("/")
 	router.POST("/register", u.registerUser)
-	router.POST("/login")
+	router.POST("/login", u.login)
 	router.GET("/logout")
 	return router
 }
@@ -52,3 +53,32 @@ func (u UserAPIHandlers) registerUser(ctx *gin.Context) {
 	ctx.JSON(200, user)
 	return
 }
+
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (u UserAPIHandlers) login(ctx *gin.Context) {
+	var data *LoginRequest
+	ctx.BindJSON(&data)
+	user, err := u.service.FindUserByFilter(data.Email)
+	if err != nil {
+		log.Println(err)
+	}
+	errAuth := auth.VerifyHash([]byte(user.Hash), data.Password)
+	if errAuth != nil {
+		ctx.Abort()
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "The Email Or Password Is Wrong. Please Check Again"})
+		return
+	}
+	accessToken, errToken := auth.GenerateAccessToken(user.Id)
+	if errToken != nil {
+		ctx.Abort()
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"accessToken": accessToken})
+}
+
+// func

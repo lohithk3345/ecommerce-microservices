@@ -5,6 +5,7 @@ import (
 	"ecommerce/internal/repositories"
 	"ecommerce/types"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -32,10 +33,14 @@ func (u UserServices) CreateUser(newUser *types.User) (interface{}, error) {
 	return result, nil
 }
 
-func (u UserServices) FindUser(id types.UserID) {
+func (u UserServices) FindById(id types.UserID) {
 	u.userRepository.FindUserByID(id)
 }
 
-func (u UserServices) FindEmail(email types.Email) {
+func (u UserServices) FindByEmail(email types.Email) {
 	u.userRepository.FindUserByEmail(email)
+}
+
+func (u UserServices) FindUserByFilter(email types.Email) (*types.User, error) {
+	return u.userRepository.FindByFilter(bson.M{"email": email})
 }

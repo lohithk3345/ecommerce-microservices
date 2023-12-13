@@ -17,7 +17,7 @@ const (
 var H = helpers.H
 
 type Store[T interface{}] interface {
-	insertOne(object T) (types.Identifier, error)
+	insertOne(object T) (*types.ID, error)
 	findOne(filter interface{}) (*mongo.SingleResult, error)
 	updateOne(filter interface{}, update interface{}) (reporesult.InsertResult, error)
 	deleteOne(filter interface{}) (reporesult.InsertResult, error)

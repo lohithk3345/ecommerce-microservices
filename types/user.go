@@ -48,11 +48,11 @@ type User struct {
 }
 
 func (u *User) SetID() {
-	u.Id = UserID{uuid.New()}
+	u.Id = uuid.New().String()
 }
 
-func (u *User) GetID() string {
-	return u.Id.UUID.String()
+func (u *User) GetID() ID {
+	return u.Id
 }
 
 func (u *User) GetName() string {
@@ -63,17 +63,15 @@ func (u *User) AddHash(hash string) {
 	u.Hash = hash
 }
 
-type UserID struct {
-	UUID uuid.UUID
-}
+type UserID = ID
 
-func (u *UserID) SetID() {
-	u.UUID = uuid.New()
-}
+// func (u *UserID) SetID() {
+// 	u = uuid.New().String()
+// }
 
-func (u *UserID) GetID() uuid.UUID {
-	return u.UUID
-}
+// func (u *UserID) GetID() ID {
+// 	return u.UUID
+// }
 
 // func (u *User) DecodeRaw(v *mongo.SingleResult) {
 // 	v.Decode(&u)

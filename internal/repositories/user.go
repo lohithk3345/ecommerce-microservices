@@ -21,14 +21,14 @@ func NewUserRepo(database *mongo.Database) *UserRepository {
 	}
 }
 
-func (u UserRepository) InsertUser(user *types.User) (*types.UserID, error) {
+func (u UserRepository) InsertUser(user *types.User) (*types.ID, error) {
 	user.SetID()
 	insertedID, err := u.store.insertOne(user)
 	if err != nil {
 		log.Println(err.(reporesult.StoreError).Message)
 		return nil, err
 	}
-	return &types.UserID{UUID: insertedID.GetID()}, nil
+	return insertedID, nil
 }
 
 func (u UserRepository) FindUserByID(id types.UserID) (*types.User, error) {
@@ -44,16 +44,30 @@ func (u UserRepository) FindUserByID(id types.UserID) (*types.User, error) {
 	return user, err
 }
 
-func (u UserRepository) FindUserByEmail(email types.Email) {
+func (u UserRepository) FindUserByEmail(email types.Email) (*types.User, error) {
 	log.Println("UserRepositoryEmailLog:", H.ByEmail(email))
 	result, err := u.store.findOne(H.ByEmail(email))
 	if err != nil {
 		log.Println(err.(reporesult.StoreError).Message)
-		return
+		return nil, err
 	}
-	var user types.User
+	var user *types.User
 	result.Decode(&user)
 	log.Println(user)
+	return user, nil
+}
+
+func (u UserRepository) FindByFilter(filter interface{}) (*types.User, error) {
+	// log.Println("UserRepositoryEmailLog:", H.ByEmail(email))
+	result, err := u.store.findOne(filter)
+	if err != nil {
+		log.Println(err.(reporesult.StoreError).Message)
+		return nil, err
+	}
+	var user *types.User
+	result.Decode(&user)
+	log.Println(user)
+	return user, nil
 }
 
 func (u UserRepository) UpdateOneById(id types.UserID) {

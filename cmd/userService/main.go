@@ -40,7 +40,7 @@ func setupREST(db *mongo.Database, wg *sync.WaitGroup) {
 }
 
 func main() {
-	db := database.NewClient().AppDatabase()
+	db := database.NewClient().TestDatabase()
 
 	var wg sync.WaitGroup
 

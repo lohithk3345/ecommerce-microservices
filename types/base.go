@@ -6,22 +6,20 @@ import "github.com/google/uuid"
 // 	Id uuid.UUID
 // }
 
-type ID struct {
-	UUID uuid.UUID
-}
+type ID = string
 
-func (u *ID) SetID() {
-	u.UUID = uuid.New()
-}
+// func (u *ID) SetID() {
+// 	u.UUID = uuid.New().String()
+// }
 
-func (u *ID) GetID() uuid.UUID {
-	return u.UUID
-}
+// func (u *ID) GetID() ID {
+// 	return u.UUID
+// }
 
-type Identifier interface {
-	SetID()
-	GetID() uuid.UUID
-}
+// type Identifier interface {
+// 	SetID()
+// 	GetID() ID
+// }
 
 type Email = string
 

@@ -21,7 +21,7 @@ func getENV() map[string]string {
 	}
 	envMap["MONGODB_URL"] = os.Getenv("MONGODB_URL")
 	envMap["API_KEY"] = os.Getenv("API_KEY")
-	// log.Println(envMap)
+	envMap["TOKEN_SECRET"] = os.Getenv("TOKEN_SECRET")
 	for key, value := range envMap {
 		if isEmpty(value) {
 			log.Fatalf("ENV not found for %s", key)
