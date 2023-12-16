@@ -23,14 +23,31 @@ func (Helper) ByEmail(email string) bson.M {
 	return bson.M{"email": email}
 }
 
+func (Helper) ByName(name string) bson.M {
+	return bson.M{"name": name}
+}
+
+func (Helper) ByUserID(id types.UserID) bson.M {
+	return bson.M{"userId": id}
+}
+
+func (Helper) ByProductID(id types.UserID) bson.M {
+	return bson.M{"productId": id}
+}
+
 func (Helper) ExtractUUIDFromInsertedID(insertedID interface{}) (*types.ID, error) {
+	log.Println("START")
 	bsonBytes, err := bson.Marshal(insertedID)
 	if err != nil {
+		log.Println("Error")
 		return nil, fmt.Errorf("failed to marshal inserted ID to BSON: %w", err)
 	}
 
+	log.Println(bsonBytes)
+
 	var insertedData types.ID
 	err = bson.Unmarshal(bsonBytes, &insertedData)
+	log.Println(insertedData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal BSON to MyData: %w", err)
 	}
@@ -40,10 +57,9 @@ func (Helper) ExtractUUIDFromInsertedID(insertedID interface{}) (*types.ID, erro
 
 func (h Helper) GetToken(ctx *gin.Context) (types.Token, error) {
 	token := ctx.GetHeader("Authorization")
-	log.Println(token)
 	bearerFix := "Bearer "
-	if token == "" || len(token) < len(bearerFix) || token[:len(bearerFix)] != bearerFix {
-		return "", gin.Error{}
+	if token == types.EmptyString || len(token) < len(bearerFix) || token[:len(bearerFix)] != bearerFix {
+		return types.EmptyString, gin.Error{}
 	}
 	actualToken := token[len(bearerFix):]
 	return actualToken, nil

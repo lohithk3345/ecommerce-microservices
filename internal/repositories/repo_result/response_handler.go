@@ -2,6 +2,8 @@ package reporesult
 
 type InsertResult interface{}
 
+type MultiResult interface{}
+
 type StoreResponse struct {
 	Code    int64
 	Message string

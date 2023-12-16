@@ -11,6 +11,7 @@ message CreateUserRequest {
     string address = 4;
     string phone = 5;
     string password = 6;
+    string role = 7;
 }
 
 message CreateUserResponse {
@@ -18,10 +19,20 @@ message CreateUserResponse {
     string body = 2;
 }
 
-message UpdateUserRequest {
-    
+message GetUserByIdRequest {
+    string userId = 1;
+}
+
+message GetUserByIdResponse {
+    string userId = 1;
+    string name = 2;
+    string email = 3;
+    int32 age = 4;
+    string address = 5;
+    string phone = 6;
 }
 
 service UserService {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+    rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse);
 }

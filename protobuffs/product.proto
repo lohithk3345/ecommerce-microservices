@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package productpb;
+
+option go_package = "/buffers";
+
+message GetProductByIdRequest {
+    string productId = 1;
+}
+
+message GetProductByIdResponse {
+    string id = 1;
+    string name = 2;
+    float price = 3;
+    string description = 4;
+    string dealerId = 5;
+}
+
+service ProductService {
+    rpc GetProductById(GetProductByIdRequest) returns (GetProductByIdResponse);
+}
+
+

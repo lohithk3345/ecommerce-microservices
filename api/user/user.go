@@ -1,14 +1,16 @@
-package apiHandlers
+package userHandlers
 
 import (
 	middleware "ecommerce/api/middlewares/user"
 	"ecommerce/cache"
+	"ecommerce/constants"
 	"ecommerce/internal/auth"
 	"ecommerce/internal/helpers"
-	services "ecommerce/services/user"
+	userServices "ecommerce/services/user"
 	"ecommerce/types"
 	"log"
 	"net/http"
+	"slices"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -30,16 +32,21 @@ func SetupUserRouter(u *UserAPIHandlers) *gin.Engine {
 }
 
 type UserAPIHandlers struct {
-	service *services.UserServices
+	service *userServices.UserServices
 }
 
 func NewUserApiHandler(database *mongo.Database) *UserAPIHandlers {
-	return &UserAPIHandlers{services.NewUserService(database)}
+	return &UserAPIHandlers{service: userServices.NewUserService(database)}
 }
 
 func (u UserAPIHandlers) registerUser(ctx *gin.Context) {
 	var user *types.UserRequest
 	ctx.BindJSON(&user)
+
+	if user.Role == types.EmptyString || !slices.Contains(constants.Roles, user.Role) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Please Provide Correct Role"})
+		return
+	}
 
 	newUser := user.Convert()
 	hash, errPass := auth.HashPassword([]byte(user.Password))
@@ -77,13 +84,13 @@ func (u UserAPIHandlers) login(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-	accessToken, errToken := auth.GenerateAccessToken(user.Id)
+	accessToken, errToken := auth.GenerateAccessToken(user.Id, user.Role)
 	if errToken != nil {
 		ctx.Abort()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
-	refreshToken, errRToken := auth.GenerateRefreshToken(user.Id)
+	refreshToken, errRToken := auth.GenerateRefreshToken(user.Id, user.Role)
 	if errRToken != nil {
 		ctx.Abort()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -114,21 +121,21 @@ func logout(ctx *gin.Context) {
 
 func (u UserAPIHandlers) protected(ctx *gin.Context) {
 	id, _ := ctx.Get("userId")
-	log.Println(id)
 	ctx.JSON(200, gin.H{"id": id})
 	return
 }
 
 func (u UserAPIHandlers) refresh(ctx *gin.Context) {
 	id := ctx.MustGet("userId").(types.ID)
+	role, _ := u.service.GetRoleById(id)
 	log.Println(id)
-	accessToken, errToken := auth.GenerateAccessToken(id)
+	accessToken, errToken := auth.GenerateAccessToken(id, role)
 	if errToken != nil {
 		ctx.Abort()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
-	refreshToken, errRToken := auth.GenerateRefreshToken(id)
+	refreshToken, errRToken := auth.GenerateRefreshToken(id, role)
 	if errRToken != nil {
 		ctx.Abort()
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})

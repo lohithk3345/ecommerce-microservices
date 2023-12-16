@@ -1,6 +1,7 @@
 package config
 
 import (
+	"ecommerce/types"
 	"log"
 	"os"
 
@@ -10,7 +11,7 @@ import (
 var EnvMap = getENV()
 
 func isEmpty(str string) bool {
-	return str == ""
+	return str == types.EmptyString
 }
 
 func getENV() map[string]string {

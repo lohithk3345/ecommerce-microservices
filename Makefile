@@ -1,19 +1,37 @@
-all: build
+all: protoc-user protoc-product build
 
-build:
-	@go build -o bin/ecommerce ./cmd/userService
+build: userService productService orderService
+	@go build -o bin/ecommerce use_main.go
 
 clean:
 	@rm -rf bin/
 
 build-run: build
-	@./bin/ecommerce
+	@./bin/userService
 
 runner:
 	@go run ./cmd/userService
 
 run:
-	@./bin/ecommerce
+	@./bin/userService
 
 userService:
 	@go build -o bin/userService ./cmd/userService
+
+productService:
+	@go build -o bin/productService ./cmd/productService
+
+orderService:
+	@go build -o bin/orderService ./cmd/orderService
+
+protoc-user:
+	@protoc --go_out=buffers/userpb/ --go_opt=paths=source_relative \
+    --go-grpc_out=buffers/userpb/ --go-grpc_opt=paths=source_relative \
+    protobuffs/user.proto
+
+protoc-product:
+	@protoc --go_out=buffers/productpb --go_opt=paths=source_relative \
+    --go-grpc_out=buffers/productpb/ --go-grpc_opt=paths=source_relative \
+    protobuffs/product.proto
+
+protoc-all: protoc-user protoc-product

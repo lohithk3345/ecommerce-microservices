@@ -1,7 +1,7 @@
 package types
 
 import (
-	buffers "ecommerce/buffers/protobuffs"
+	buffers "ecommerce/buffers/userpb/protobuffs"
 	"fmt"
 	"math/rand"
 	"time"
@@ -16,6 +16,7 @@ type UserRequest struct {
 	Address  string `json:"address"`
 	IsActive bool   `json:"isActive"`
 	Password string `json:"password"`
+	Role     Role   `json:"role"`
 }
 
 func (u UserRequest) Convert() *User {
@@ -25,15 +26,18 @@ func (u UserRequest) Convert() *User {
 		Address:  u.Address,
 		IsActive: u.IsActive,
 		Email:    u.Email,
+		Role:     u.Role,
 	}
 }
 
-func ConvertRPCRequest(req *buffers.CreateUserRequest) *User {
+func ConvertUserRPCRequest(req *buffers.CreateUserRequest) *User {
 	return &User{
 		Name:    req.Name,
 		Age:     int(req.Age),
 		Address: req.Address,
 		Email:   req.Email,
+		Role:    req.Role,
+		Phone:   req.Phone,
 	}
 }
 
@@ -43,8 +47,10 @@ type User struct {
 	Age      int    `bson:"age"`
 	Email    Email  `bson:"email"`
 	Address  string `bson:"address"`
+	Phone    string `bson:"phone"`
 	Hash     string `bson:"hashPass"`
 	IsActive bool   `bson:"isActive"`
+	Role     Role   `bson:"role"`
 }
 
 func (u *User) SetID() {

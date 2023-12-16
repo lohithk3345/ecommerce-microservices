@@ -6,8 +6,10 @@ import (
 	"ecommerce/constants"
 	"ecommerce/internal/auth"
 	"ecommerce/internal/helpers"
+	"ecommerce/types"
 	"log"
 	"net/http"
+	"slices"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,8 +17,7 @@ import (
 func ApiKeyCheck() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		key := ctx.GetHeader(constants.API_KEY)
-		if key == "" && key != config.EnvMap["API_KEY"] {
-			log.Println("Not")
+		if key == types.EmptyString && key != config.EnvMap["API_KEY"] {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 			ctx.Abort()
 			return
@@ -44,6 +45,7 @@ func CheckAccessTokenAuth() gin.HandlerFunc {
 		}
 
 		ctx.Set("userId", claims.Id)
+		ctx.Set("role", claims.Role)
 
 		ctx.Next()
 	}
@@ -75,6 +77,38 @@ func CheckRefreshTokenAuth() gin.HandlerFunc {
 		ctx.Set("userId", claims.Id)
 
 		delete(cache.RefreshTokenMap, claims.Id)
+		ctx.Next()
+	}
+}
+
+func CheckIfDealerRole() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		iRole := ctx.MustGet("role")
+		role := iRole.(types.Role)
+
+		if role != constants.Dealer || !slices.Contains(constants.Roles, role) {
+			log.Println("NOT A DEALER")
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			ctx.Abort()
+			return
+		}
+
+		ctx.Next()
+	}
+}
+
+func CheckIfCustomerRole() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		iRole := ctx.MustGet("role")
+		role := iRole.(types.Role)
+
+		if role != constants.Customer || !slices.Contains(constants.Roles, role) {
+			log.Println("NOT A CUSTOMER")
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			ctx.Abort()
+			return
+		}
+
 		ctx.Next()
 	}
 }
