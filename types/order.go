@@ -14,6 +14,7 @@ type Order struct {
 	CategoryId CategoryID `bson:"categoryId" json:"categoryId"`
 	Address    string     `bson:"address" json:"userAdderss"`
 	Email      Email      `bson:"email" json:"email"`
+	Status     string     `bson:"status" json:"status"`
 }
 
 func (o *Order) SetID() {

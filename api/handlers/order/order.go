@@ -2,6 +2,8 @@ package orderHandler
 
 import (
 	middleware "ecommerce/api/middlewares/user"
+	"ecommerce/cache"
+	"ecommerce/constants"
 	orderServices "ecommerce/services/order"
 	"ecommerce/types"
 	"log"
@@ -18,7 +20,7 @@ func SetupOrderRouter(o *OrderApiHandler) *gin.Engine {
 	router.Use(middleware.ApiKeyCheck(), middleware.CheckAccessTokenAuth())
 
 	router.POST("/order", o.orderProduct)
-	// router.POST("/order", o)
+	router.DELETE("/order", o.cancelOrder)
 	router.GET("/order", o.getOrdersByUserId)
 	// router.GET("/order/:id", middleware.CheckRefreshTokenAuth(), o)
 	// router.GET("/logout", logout)
@@ -63,5 +65,41 @@ func (o OrderApiHandler) getOrdersByUserId(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, result)
+	return
+}
+
+func (o OrderApiHandler) cancelOrder(ctx *gin.Context) {
+	var order *types.Order
+	ctx.BindJSON(&order)
+
+	userId := ctx.MustGet("userId").(types.UserID)
+	log.Println("OrderId", order.Id)
+
+	result, err := o.service.FindById(order.Id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, "Order Not Found")
+		return
+	}
+
+	if userId != result.UserId {
+		ctx.JSON(http.StatusUnauthorized, "User Unauthorized")
+		delete(cache.RefreshTokenMap, userId)
+		ctx.Abort()
+		return
+	}
+
+	if result.Status == constants.OrderCancelled {
+		ctx.JSON(http.StatusBadRequest, "Already Cancelled")
+		ctx.Abort()
+		return
+	}
+
+	errC := o.service.CancelOneById(order.Id, result.ProductId)
+	if errC != nil {
+		ctx.JSON(http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{})
 	return
 }

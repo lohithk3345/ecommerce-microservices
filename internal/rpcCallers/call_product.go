@@ -4,6 +4,7 @@ import (
 	"context"
 	buffers "ecommerce/buffers/productpb/protobuffs"
 	"ecommerce/types"
+	"errors"
 	"log"
 
 	"google.golang.org/grpc"
@@ -21,7 +22,7 @@ func NewProductCaller() *ProductCaller {
 }
 
 func connectAndGetProductClient() buffers.ProductServiceClient {
-	conn, err := grpc.Dial("localhost:3003", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("localhost:50052", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln("Could Not Connect To Server")
 	}
@@ -47,4 +48,23 @@ func (p ProductCaller) GetProductById(id types.ProductID) (*types.Product, error
 	log.Println("Product", product)
 
 	return product, err
+}
+
+func (p ProductCaller) StockUpdate(id types.ProductID, operaion buffers.StockUpdate, number int32) error {
+	req := &buffers.UpdateStockByIdRequest{
+		ProductId: id,
+		Operation: operaion,
+		ByNumber:  uint32(number),
+	}
+	result, err := p.caller.StockUpdateById(context.Background(), req)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	if result.Status == buffers.Status_FAILED {
+		return errors.New("Operation Failed")
+	}
+
+	return nil
 }

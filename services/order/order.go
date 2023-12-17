@@ -1,6 +1,8 @@
 package orderServices
 
 import (
+	buffers "ecommerce/buffers/productpb/protobuffs"
+	"ecommerce/constants"
 	orderRepository "ecommerce/internal/repositories/order"
 	"ecommerce/internal/rpcCallers"
 	"ecommerce/types"
@@ -48,6 +50,11 @@ func (u OrderServices) CreateOrder(userId types.UserID, productId types.ProductI
 		Email:     user.Email,
 	}
 
+	err := u.productCaller.StockUpdate(productId, buffers.StockUpdate_DEC, 1)
+	if err != nil {
+		return types.EmptyString, err
+	}
+
 	return u.orderRepository.InsertOrder(order)
 }
 
@@ -61,4 +68,13 @@ func (u OrderServices) FindByUserId(id types.OrderID) ([]*types.Order, error) {
 
 func (u OrderServices) FindOrderByFilter(email types.Email) (*types.Order, error) {
 	return u.orderRepository.FindByFilter(bson.M{"email": email})
+}
+
+func (u OrderServices) CancelOneById(id types.OrderID, productId types.ProductID) error {
+	errP := u.productCaller.StockUpdate(productId, buffers.StockUpdate_INC, 1)
+	if errP != nil {
+		return errP
+	}
+
+	return u.orderRepository.UpdateOneById(id, bson.M{"status": constants.OrderCancelled})
 }

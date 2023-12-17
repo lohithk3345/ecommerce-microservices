@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ProductService_GetProductById_FullMethodName = "/productpb.ProductService/GetProductById"
+	ProductService_GetProductById_FullMethodName  = "/productpb.ProductService/GetProductById"
+	ProductService_StockUpdateById_FullMethodName = "/productpb.ProductService/StockUpdateById"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProductServiceClient interface {
 	GetProductById(ctx context.Context, in *GetProductByIdRequest, opts ...grpc.CallOption) (*GetProductByIdResponse, error)
+	StockUpdateById(ctx context.Context, in *UpdateStockByIdRequest, opts ...grpc.CallOption) (*UpdateStockByIdResponse, error)
 }
 
 type productServiceClient struct {
@@ -46,11 +48,21 @@ func (c *productServiceClient) GetProductById(ctx context.Context, in *GetProduc
 	return out, nil
 }
 
+func (c *productServiceClient) StockUpdateById(ctx context.Context, in *UpdateStockByIdRequest, opts ...grpc.CallOption) (*UpdateStockByIdResponse, error) {
+	out := new(UpdateStockByIdResponse)
+	err := c.cc.Invoke(ctx, ProductService_StockUpdateById_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility
 type ProductServiceServer interface {
 	GetProductById(context.Context, *GetProductByIdRequest) (*GetProductByIdResponse, error)
+	StockUpdateById(context.Context, *UpdateStockByIdRequest) (*UpdateStockByIdResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -60,6 +72,9 @@ type UnimplementedProductServiceServer struct {
 
 func (UnimplementedProductServiceServer) GetProductById(context.Context, *GetProductByIdRequest) (*GetProductByIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductById not implemented")
+}
+func (UnimplementedProductServiceServer) StockUpdateById(context.Context, *UpdateStockByIdRequest) (*UpdateStockByIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StockUpdateById not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 
@@ -92,6 +107,24 @@ func _ProductService_GetProductById_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_StockUpdateById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateStockByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).StockUpdateById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_StockUpdateById_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).StockUpdateById(ctx, req.(*UpdateStockByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +135,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProductById",
 			Handler:    _ProductService_GetProductById_Handler,
+		},
+		{
+			MethodName: "StockUpdateById",
+			Handler:    _ProductService_StockUpdateById_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

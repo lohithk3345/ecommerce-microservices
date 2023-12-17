@@ -1,7 +1,7 @@
 package main
 
 import (
-	userHandlers "ecommerce/api/user"
+	userHandlers "ecommerce/api/handlers/user"
 	buffers "ecommerce/buffers/userpb/protobuffs"
 	"ecommerce/internal/database"
 	rpcHandlers "ecommerce/internal/rpcHandlers"
@@ -15,7 +15,7 @@ import (
 )
 
 func setupGRPC(db *mongo.Database, wg *sync.WaitGroup) {
-	lis, err := net.Listen("tcp", ":3000")
+	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		panic("err")
 	}
@@ -23,7 +23,7 @@ func setupGRPC(db *mongo.Database, wg *sync.WaitGroup) {
 	s := grpc.NewServer()
 	server := rpcHandlers.NewUserServer(db)
 	buffers.RegisterUserServiceServer(s, server)
-	log.Printf("Starting gRPC at: %s\n", "3000")
+	log.Printf("Starting gRPC at: %s\n", "50051")
 	s.Serve(lis)
 
 	wg.Done()
@@ -33,8 +33,8 @@ func setupREST(db *mongo.Database, wg *sync.WaitGroup) {
 	u := userHandlers.NewUserApiHandler(db)
 	router := userHandlers.SetupUserRouter(u)
 
-	log.Printf("Starting HTTP server at: %s\n", "3001")
-	http.ListenAndServe(":3001", router)
+	log.Printf("Starting HTTP server at: %s\n", "3000")
+	http.ListenAndServe(":3000", router)
 	wg.Done()
 
 }

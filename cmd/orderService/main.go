@@ -1,7 +1,7 @@
 package main
 
 import (
-	orderHandler "ecommerce/api/order"
+	orderHandler "ecommerce/api/handlers/order"
 	"ecommerce/internal/database"
 	"log"
 	"net/http"
@@ -13,8 +13,8 @@ func setupREST(db *mongo.Database) {
 	o := orderHandler.NewOrderApiHandler(db)
 	router := orderHandler.SetupOrderRouter(o)
 
-	log.Printf("Starting HTTP server at: %s\n", "3004")
-	http.ListenAndServe(":3004", router)
+	log.Printf("Starting HTTP server at: %s\n", "3002")
+	http.ListenAndServe(":3002", router)
 }
 
 func main() {

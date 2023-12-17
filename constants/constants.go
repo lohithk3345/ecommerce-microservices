@@ -10,4 +10,9 @@ const (
 	Dealer   types.Role = "Dealer"
 )
 
+const (
+	OrderActive    string = "Active"
+	OrderCancelled string = "Cancelled"
+)
+
 var Roles []types.Role = []types.Role{Customer, Dealer}

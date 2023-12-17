@@ -21,7 +21,7 @@ func NewUserCaller() *UserCaller {
 }
 
 func connectAndGetUserClient() buffers.UserServiceClient {
-	conn, err := grpc.Dial("localhost:3000", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln("Could Not Connect To Server")
 	}

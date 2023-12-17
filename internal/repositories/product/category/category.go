@@ -43,7 +43,7 @@ func (p CategoryRepository) GetCategoryById(id types.CategoryID) (*types.Categor
 	return category, nil
 }
 
-func (p CategoryRepository) GetCategoryByName(name string) ([]types.Category, error) {
+func (p CategoryRepository) GetCategoriesByName(name string) ([]types.Category, error) {
 	ctx := context.Background()
 	result, err := p.store.find(ctx, H.ByName(name))
 	if err != nil {

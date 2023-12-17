@@ -4,6 +4,7 @@ import (
 	productRepository "ecommerce/internal/repositories/product"
 	"ecommerce/types"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,4 +28,12 @@ func (u ProductServices) FindProductById(id types.ProductID) (*types.Product, er
 
 func (p ProductServices) FindProductsByName(name string) ([]types.Product, error) {
 	return p.repository.GetProductsByName(name)
+}
+
+func (p ProductServices) IncrementStockById(id types.ProductID, numberBy int16) error {
+	return p.repository.UpdateProductByID(id, bson.M{"$inc": bson.M{"stock": numberBy}})
+}
+
+func (p ProductServices) DecrementStockById(id types.ProductID, numberBy int16) error {
+	return p.repository.UpdateProductByID(id, bson.M{"$inc": bson.M{"stock": -numberBy}})
 }

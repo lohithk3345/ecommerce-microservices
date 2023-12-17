@@ -13,7 +13,15 @@ runner:
 	@go run ./cmd/userService
 
 run:
+
+run-userService:
 	@./bin/userService
+
+run-productService:
+	@./bin/productService
+
+run-orderService:
+	@./bin/orderService
 
 userService:
 	@go build -o bin/userService ./cmd/userService
@@ -33,5 +41,9 @@ protoc-product:
 	@protoc --go_out=buffers/productpb --go_opt=paths=source_relative \
     --go-grpc_out=buffers/productpb/ --go-grpc_opt=paths=source_relative \
     protobuffs/product.proto
+
+protoc-clean:
+	@rm -rf buffers/usepb/*
+	@rm -rf buffers/productpb/*
 
 protoc-all: protoc-user protoc-product

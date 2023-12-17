@@ -5,6 +5,7 @@ import (
 	"ecommerce/types"
 	"log"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -96,4 +97,15 @@ func (p ProductRepository) GetProductsByCategory(filter interface{}) ([]types.Pr
 	result.All(ctx, &product)
 	log.Println(&product)
 	return product, nil
+}
+
+func (p ProductRepository) UpdateProductByID(id types.ProductID, update bson.M) error {
+	// ctx := context.Background()
+	err := p.store.updateOne(H.ByID(id), update)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
 }

@@ -22,7 +22,7 @@ var H = helpers.H
 type ProductStore[T interface{}] interface {
 	insertOne(object T) (types.ID, error)
 	findOne(filter interface{}) (*mongo.SingleResult, error)
-	updateOne(filter interface{}, update interface{}) (reporesult.InsertResult, error)
+	updateOne(filter interface{}, update interface{}) error
 	deleteOne(filter interface{}) (reporesult.InsertResult, error)
 	find(ctx context.Context, filter interface{}) (*mongo.Cursor, error)
 }
@@ -71,22 +71,22 @@ func (d *ProductDatabase[T]) findOne(filter interface{}) (*mongo.SingleResult, e
 	return result, nil
 }
 
-func (d *ProductDatabase[T]) updateOne(filter interface{}, update interface{}) (reporesult.InsertResult, error) {
+func (d *ProductDatabase[T]) updateOne(filter interface{}, update interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	result, err := d.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		log.Println("Error Store:", err.Error())
-		return nil, err
+		return err
 	}
 	if !reporesult.IsMatched(result.MatchedCount) {
-		return nil, reporesult.StoreError{Code: 404, Message: "No Match Found"}
+		return reporesult.StoreError{Code: 404, Message: "No Match Found"}
 	}
 	if !reporesult.IsModified(result.ModifiedCount) {
-		return nil, reporesult.StoreError{Code: 409, Message: "Found match but has the value already"}
+		return reporesult.StoreError{Code: 409, Message: "Found match but has the value already"}
 	}
 	log.Println(result.MatchedCount, result.UpsertedCount, result.UpsertedID, result.ModifiedCount)
-	return result.UpsertedID, nil
+	return nil
 }
 
 func (d *ProductDatabase[T]) deleteOne(filter interface{}) (reporesult.InsertResult, error) {

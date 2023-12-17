@@ -27,3 +27,9 @@ func ConvertProductRPCRequest(req *buffers.GetProductByIdRequest) *Product {
 		Id: req.ProductId,
 	}
 }
+
+func ConvertProductRPCIncRequest(req *buffers.UpdateStockByIdRequest) *Product {
+	return &Product{
+		Id: req.ProductId,
+	}
+}

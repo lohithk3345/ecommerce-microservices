@@ -2,6 +2,7 @@ package orderRepository
 
 import (
 	"context"
+	"ecommerce/constants"
 	reporesult "ecommerce/internal/repositories/repo_result"
 	"ecommerce/types"
 	"log"
@@ -24,6 +25,7 @@ func NewOrderRepo(database *mongo.Database) *OrderRepository {
 
 func (u OrderRepository) InsertOrder(order *types.Order) (types.OrderID, error) {
 	order.SetID()
+	order.Status = constants.OrderActive
 	insertedID, err := u.store.insertOne(order)
 	if err != nil {
 		log.Println(err.(reporesult.StoreError).Message)
@@ -42,6 +44,7 @@ func (u OrderRepository) FindOrderByID(id types.OrderID) (*types.Order, error) {
 
 	var order *types.Order
 	result.Decode(&order)
+	log.Println(order)
 	return order, err
 }
 
@@ -83,13 +86,13 @@ func (u OrderRepository) FindByFilter(filter interface{}) (*types.Order, error) 
 	return order, nil
 }
 
-func (u OrderRepository) UpdateOneById(id types.OrderID, update bson.M) {
-	result, err := u.store.updateOne(H.ByID(id), bson.M{"$set": update})
+func (u OrderRepository) UpdateOneById(id types.OrderID, update bson.M) error {
+	err := u.store.updateOne(H.ByID(id), bson.M{"$set": update})
 	if err != nil {
 		log.Println(err.(reporesult.StoreError).Message)
-		return
+		return err
 	}
-	log.Println(result)
+	return nil
 }
 
 func (u OrderRepository) DeleteOneByID(id types.OrderID) {
