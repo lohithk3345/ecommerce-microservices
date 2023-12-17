@@ -1,41 +1,48 @@
-package services
+package userServices
 
 import (
-	"ecommerce/internal/auth"
-	"ecommerce/internal/repositories"
+	"ecommerce/constants"
+	userRepository "ecommerce/internal/repositories/user"
 	"ecommerce/types"
+	"slices"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserServices struct {
-	userRepository *repositories.UserRepository
+	userRepository *userRepository.UserRepository
 }
 
 func NewUserService(database *mongo.Database) *UserServices {
 	return &UserServices{
-		userRepository: repositories.NewUserRepo(database),
+		userRepository: userRepository.NewUserRepo(database),
 	}
 }
 
-func (u UserServices) CreateUser(newUser *types.User) (interface{}, error) {
-	hash, errPass := auth.HashPassword([]byte("Hey"))
-	if errPass != nil {
-		return nil, errPass
+func (u UserServices) CreateUser(user *types.User) (types.ID, error) {
+	if user.Role == types.EmptyString || !slices.Contains(constants.Roles, user.Role) {
+		user.Role = constants.Customer
 	}
-	newUser.AddHash(string(hash))
-	result, err := u.userRepository.InsertUser(newUser)
+	return u.userRepository.InsertUser(user)
+}
+
+func (u UserServices) FindById(id types.UserID) (*types.User, error) {
+	return u.userRepository.FindUserByID(id)
+}
+
+func (u UserServices) GetRoleById(id types.UserID) (types.Role, error) {
+	user, err := u.userRepository.FindUserByID(id)
 	if err != nil {
-		return nil, err
+		return types.EmptyString, err
 	}
-
-	return result, nil
+	return user.Role, nil
 }
 
-func (u UserServices) FindUser(id types.UserID) {
-	u.userRepository.FindUserByID(id)
-}
-
-func (u UserServices) FindEmail(email types.Email) {
+func (u UserServices) FindByEmail(email types.Email) {
 	u.userRepository.FindUserByEmail(email)
+}
+
+func (u UserServices) FindUserByFilter(email types.Email) (*types.User, error) {
+	return u.userRepository.FindByFilter(bson.M{"email": email})
 }

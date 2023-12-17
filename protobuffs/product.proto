@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package productpb;
+
+option go_package = "/buffers";
+
+enum Status {
+    SUCCESS = 0;
+    FAILED = 1;
+}
+
+message GetProductByIdRequest {
+    string productId = 1;
+}
+
+message GetProductByIdResponse {
+    string id = 1;
+    string name = 2;
+    float price = 3;
+    string description = 4;
+    string dealerId = 5;
+}
+
+enum StockUpdate {
+    INC = 0;
+    DEC = 1;
+}
+
+message UpdateStockByIdRequest {
+    string productId = 1;
+    StockUpdate operation = 2;
+    uint32 byNumber = 3;
+}
+
+message UpdateStockByIdResponse {
+    Status status = 1;
+}
+
+service ProductService {
+    rpc GetProductById(GetProductByIdRequest) returns (GetProductByIdResponse);
+    rpc StockUpdateById(UpdateStockByIdRequest) returns (UpdateStockByIdResponse);
+}
+
+

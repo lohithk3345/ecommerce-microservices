@@ -1,33 +1,43 @@
-package repositories
+package orderRepository
 
 import (
 	"context"
+	"ecommerce/internal/helpers"
 	reporesult "ecommerce/internal/repositories/repo_result"
 	"ecommerce/types"
 	"log"
 	"time"
 
-	// "go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// var h = helpers.Helper{}
+const (
+	NOT_FOUND = iota + 1
+	DUPLICATE
+	CONN_ERR
+)
 
-type Database[T interface{}] struct {
+var H = helpers.H
+
+type OrderStore[T interface{}] interface {
+	insertOne(object T) (types.ID, error)
+	findOne(filter interface{}) (*mongo.SingleResult, error)
+	updateOne(filter interface{}, update interface{}) error
+	deleteOne(filter interface{}) (reporesult.InsertResult, error)
+	find(ctx context.Context, filter interface{}) (*mongo.Cursor, error)
+}
+
+type OrderDatabase[T interface{}] struct {
 	collection *mongo.Collection
 }
 
-func NewDatabase[T interface{}](database *mongo.Database, collection string) *Database[T] {
-	return &Database[T]{
+func NewOrderDatabase[T interface{}](database *mongo.Database, collection string) *OrderDatabase[T] {
+	return &OrderDatabase[T]{
 		collection: database.Collection(collection),
 	}
 }
 
-func (d *Database[T]) insertOne(object T) (types.ID, error) {
+func (d *OrderDatabase[T]) insertOne(object T) (types.ID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	result, err := d.collection.InsertOne(ctx, object)
@@ -47,7 +57,7 @@ func (d *Database[T]) insertOne(object T) (types.ID, error) {
 	return id, nil
 }
 
-func (d *Database[T]) findOne(filter interface{}) (*mongo.SingleResult, error) {
+func (d *OrderDatabase[T]) findOne(filter interface{}) (*mongo.SingleResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	result := d.collection.FindOne(ctx, filter)
@@ -61,25 +71,25 @@ func (d *Database[T]) findOne(filter interface{}) (*mongo.SingleResult, error) {
 	return result, nil
 }
 
-func (d *Database[T]) updateOne(filter interface{}, update interface{}) (reporesult.InsertResult, error) {
+func (d *OrderDatabase[T]) updateOne(filter interface{}, update interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	result, err := d.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		log.Println("Error Store:", err.Error())
-		return nil, err
+		return err
 	}
 	if !reporesult.IsMatched(result.MatchedCount) {
-		return nil, reporesult.StoreError{Code: 404, Message: "No Match Found"}
+		return reporesult.StoreError{Code: 404, Message: "No Match Found"}
 	}
 	if !reporesult.IsModified(result.ModifiedCount) {
-		return nil, reporesult.StoreError{Code: 409, Message: "Found match but has the value already"}
+		return reporesult.StoreError{Code: 409, Message: "Found match but has the value already"}
 	}
 	log.Println(result.MatchedCount, result.UpsertedCount, result.UpsertedID, result.ModifiedCount)
-	return result.UpsertedID, nil
+	return nil
 }
 
-func (d *Database[T]) deleteOne(filter interface{}) (reporesult.InsertResult, error) {
+func (d *OrderDatabase[T]) deleteOne(filter interface{}) (reporesult.InsertResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	result, err := d.collection.DeleteOne(ctx, filter)
@@ -94,39 +104,6 @@ func (d *Database[T]) deleteOne(filter interface{}) (reporesult.InsertResult, er
 	return reporesult.IsDeletedCount(result.DeletedCount), nil
 }
 
-func (d *Database[T]) find(filter interface{}) (*mongo.Cursor, error) {
+func (d *OrderDatabase[T]) find(ctx context.Context, filter interface{}) (*mongo.Cursor, error) {
 	return d.collection.Find(context.Background(), filter)
-}
-
-//	func (s *Store[T]) upsertOne(filter interface{}, update interface{}) (InsertResult, error) {
-//		ioptions := options.Update().SetUpsert(true)
-//		result, err := s.collection.UpdateOne(context.Background(), bson.M{}, update, ioptions)
-//		if err != nil {
-//			log.Println("Error Store:", err.Error())
-//			return nil, err
-//		}
-//		if err != nil {
-//			log.Println("Error Store:", err.Error())
-//			return nil, err
-//		}
-//		if !isMatched(result.MatchedCount) {
-//			return nil, StoreError{Code: 404, Message: "No Match Found"}
-//		}
-//		if !isUpserted(result.ModifiedCount) {
-//			return nil, StoreError{Code: 409, Message: "Found match but has the value already"}
-//		}
-//		log.Println(result.MatchedCount, result.UpsertedCount, result.UpsertedID, result.ModifiedCount)
-//		return result.UpsertedID, nil
-//	}
-func convertDToUUID(d primitive.D) (*uuid.UUID, error) {
-	// Extract the string representation of the UUID from the interface
-	uuidStr, err := bson.Marshal(d)
-
-	// Parse the string into a UUID object
-	uuid, err := uuid.FromBytes(uuidStr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &uuid, nil
 }

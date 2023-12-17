@@ -1,30 +1,20 @@
 package types
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson"
+)
 
-// type ID struct {
-// 	Id uuid.UUID
-// }
-
-type ID struct {
-	UUID uuid.UUID
-}
-
-func (u *ID) SetID() {
-	u.UUID = uuid.New()
-}
-
-func (u *ID) GetID() uuid.UUID {
-	return u.UUID
-}
-
-type Identifier interface {
-	SetID()
-	GetID() uuid.UUID
-}
+type ID = string
 
 type Email = string
 
+type Token = string
+
+type Update = bson.M
+
 var EmptyID = uuid.Nil
+
+type Role = string
 
 const EmptyString string = string("")

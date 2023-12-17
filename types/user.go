@@ -1,7 +1,7 @@
 package types
 
 import (
-	userpb "ecommerce/userpb/protobuffs"
+	buffers "ecommerce/buffers/userpb/protobuffs"
 	"fmt"
 	"math/rand"
 	"time"
@@ -16,6 +16,7 @@ type UserRequest struct {
 	Address  string `json:"address"`
 	IsActive bool   `json:"isActive"`
 	Password string `json:"password"`
+	Role     Role   `json:"role"`
 }
 
 func (u UserRequest) Convert() *User {
@@ -25,15 +26,18 @@ func (u UserRequest) Convert() *User {
 		Address:  u.Address,
 		IsActive: u.IsActive,
 		Email:    u.Email,
+		Role:     u.Role,
 	}
 }
 
-func ConvertRPCRequest(req *userpb.CreateUserRequest) *User {
+func ConvertUserRPCRequest(req *buffers.CreateUserRequest) *User {
 	return &User{
 		Name:    req.Name,
 		Age:     int(req.Age),
 		Address: req.Address,
 		Email:   req.Email,
+		Role:    req.Role,
+		Phone:   req.Phone,
 	}
 }
 
@@ -43,16 +47,18 @@ type User struct {
 	Age      int    `bson:"age"`
 	Email    Email  `bson:"email"`
 	Address  string `bson:"address"`
+	Phone    string `bson:"phone"`
 	Hash     string `bson:"hashPass"`
 	IsActive bool   `bson:"isActive"`
+	Role     Role   `bson:"role"`
 }
 
 func (u *User) SetID() {
-	u.Id = UserID{uuid.New()}
+	u.Id = uuid.New().String()
 }
 
-func (u *User) GetID() string {
-	return u.Id.UUID.String()
+func (u *User) GetID() ID {
+	return u.Id
 }
 
 func (u *User) GetName() string {
@@ -63,17 +69,15 @@ func (u *User) AddHash(hash string) {
 	u.Hash = hash
 }
 
-type UserID struct {
-	UUID uuid.UUID
-}
+type UserID = ID
 
-func (u *UserID) SetID() {
-	u.UUID = uuid.New()
-}
+// func (u *UserID) SetID() {
+// 	u = uuid.New().String()
+// }
 
-func (u *UserID) GetID() uuid.UUID {
-	return u.UUID
-}
+// func (u *UserID) GetID() ID {
+// 	return u.UUID
+// }
 
 // func (u *User) DecodeRaw(v *mongo.SingleResult) {
 // 	v.Decode(&u)
