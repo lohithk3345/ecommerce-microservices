@@ -50,11 +50,11 @@ func (o CartApiHandler) addToCart(ctx *gin.Context) {
 	log.Println(userId, cartReq)
 	_, err := o.service.AddToCart(userId, cartReq.ProductId)
 	if err != nil {
-		ctx.JSON(http.StatusNonAuthoritativeInfo, "Internal Server Error")
+		ctx.JSON(http.StatusNonAuthoritativeInfo, gin.H{"Status": "Internal Server Error"})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, "Added To Cart")
+	ctx.JSON(http.StatusCreated, gin.H{"Status": "Added To Cart"})
 	return
 }
 
@@ -62,7 +62,7 @@ func (o CartApiHandler) getCartByUserId(ctx *gin.Context) {
 	userId := ctx.MustGet("userId").(types.UserID)
 	result, err := o.service.FindByUserId(userId)
 	if err != nil {
-		ctx.JSON(http.StatusNonAuthoritativeInfo, "Cart Not Found")
+		ctx.JSON(http.StatusNonAuthoritativeInfo, gin.H{"Status": "Item Not Found"})
 		return
 	}
 
@@ -84,12 +84,12 @@ func (o CartApiHandler) removeFromCart(ctx *gin.Context) {
 
 	result, err := o.service.FindById(cart.CartId)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, "Cart Not Found")
+		ctx.JSON(http.StatusNotFound, gin.H{"Status": "Item Not Found"})
 		return
 	}
 
 	if userId != result.UserId {
-		ctx.JSON(http.StatusUnauthorized, "User Unauthorized")
+		ctx.JSON(http.StatusUnauthorized, gin.H{"Status": "User Unauthorized"})
 		delete(cache.RefreshTokenMap, userId)
 		ctx.Abort()
 		return
@@ -97,7 +97,7 @@ func (o CartApiHandler) removeFromCart(ctx *gin.Context) {
 
 	errI := o.service.RemoveItemByCartId(cart.CartId)
 	if errI != nil {
-		ctx.JSON(http.StatusNonAuthoritativeInfo, "Internal Server Error")
+		ctx.JSON(http.StatusNonAuthoritativeInfo, gin.H{"Status": "Internal Server Error"})
 		return
 	}
 
