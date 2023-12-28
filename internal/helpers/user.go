@@ -4,6 +4,7 @@ import (
 	"ecommerce/types"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -33,6 +34,10 @@ func (Helper) ByUserID(id types.UserID) bson.M {
 
 func (Helper) ByProductID(id types.UserID) bson.M {
 	return bson.M{"productId": id}
+}
+
+func (Helper) SetTimestamp() time.Time {
+	return time.Now().UTC()
 }
 
 func (Helper) ExtractUUIDFromInsertedID(insertedID interface{}) (*types.ID, error) {

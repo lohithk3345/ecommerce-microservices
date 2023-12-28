@@ -1,7 +1,7 @@
 all: protoc-user protoc-product build
 
-build: userService productService orderService
-	@go build -o bin/ecommerce use_main.go
+build: userService productService orderService cartService
+	# @go build -o bin/ecommerce use_main.go
 
 clean:
 	@rm -rf bin/
@@ -23,6 +23,9 @@ run-productService:
 run-orderService:
 	@./bin/orderService
 
+run-cartService:
+	@./bin/cartService
+
 userService:
 	@go build -o bin/userService ./cmd/userService
 
@@ -31,6 +34,9 @@ productService:
 
 orderService:
 	@go build -o bin/orderService ./cmd/orderService
+
+cartService:
+	@go build -o bin/cartService ./cmd/cartService
 
 protoc-user:
 	@protoc --go_out=buffers/userpb/ --go_opt=paths=source_relative \
