@@ -77,7 +77,7 @@ func (u UserAPIHandlers) login(ctx *gin.Context) {
 	ctx.BindJSON(&data)
 	user, err := u.service.FindUserByFilter(data.Email)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "The Email Or Password Is Wrong. Please Check Again"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "The User is not registered to the app"})
 		ctx.Abort()
 		return
 	}
