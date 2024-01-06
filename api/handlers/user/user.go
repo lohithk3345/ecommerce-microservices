@@ -27,6 +27,7 @@ func SetupUserRouter(u *UserAPIHandlers) *gin.Engine {
 	router.GET("/protected", middleware.CheckAccessTokenAuth(), u.protected)
 	router.GET("/refresh", middleware.CheckRefreshTokenAuth(), u.refresh)
 	router.GET("/logout", logout)
+	router.GET("/status", u.status)
 
 	return router
 }
@@ -76,7 +77,9 @@ func (u UserAPIHandlers) login(ctx *gin.Context) {
 	ctx.BindJSON(&data)
 	user, err := u.service.FindUserByFilter(data.Email)
 	if err != nil {
-		log.Println(err)
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "The Email Or Password Is Wrong. Please Check Again"})
+		ctx.Abort()
+		return
 	}
 	errAuth := auth.VerifyHash([]byte(user.Hash), data.Password)
 	if errAuth != nil {
@@ -145,4 +148,9 @@ func (u UserAPIHandlers) refresh(ctx *gin.Context) {
 	cache.RefreshTokenMap[id] = refreshToken
 	ctx.Header("Authorization", "Bearer "+accessToken)
 	ctx.JSON(http.StatusOK, gin.H{"accessToken": accessToken, "refreshToken": refreshToken})
+}
+
+func (u UserAPIHandlers) status(ctx *gin.Context) {
+	ctx.JSON(200, gin.H{"status": "up"})
+	return
 }
