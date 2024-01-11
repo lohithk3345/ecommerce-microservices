@@ -23,6 +23,7 @@ func NewUserRepo(database *mongo.Database) *UserRepository {
 
 func (u UserRepository) InsertUser(user *types.User) (types.ID, error) {
 	user.SetID()
+	user.IsActive = true
 	insertedID, err := u.store.insertOne(user)
 	if err != nil {
 		log.Println(err.(reporesult.StoreError).Message)
