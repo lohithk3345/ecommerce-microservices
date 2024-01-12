@@ -49,7 +49,7 @@ func (o OrderApiHandler) orderProduct(ctx *gin.Context) {
 	_, err := o.service.CreateOrder(userId, orderReq.ProductId)
 	if err != nil {
 		log.Println(err)
-		ctx.JSON(http.StatusBadRequest, "Dealer is not authorized to create order")
+		ctx.JSON(http.StatusBadRequest, gin.H{"cancelled": "Dealer is not authorized to create order"})
 		return
 	}
 
