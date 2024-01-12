@@ -48,7 +48,8 @@ func (o OrderApiHandler) orderProduct(ctx *gin.Context) {
 	log.Println(userId, orderReq)
 	_, err := o.service.CreateOrder(userId, orderReq.ProductId)
 	if err != nil {
-		ctx.JSON(http.StatusNonAuthoritativeInfo, "Internal Server Error")
+		log.Println(err)
+		ctx.JSON(http.StatusBadRequest, "Dealer is not authorized to create order")
 		return
 	}
 
@@ -60,7 +61,7 @@ func (o OrderApiHandler) getOrdersByUserId(ctx *gin.Context) {
 	userId := ctx.MustGet("userId").(types.UserID)
 	result, err := o.service.FindByUserId(userId)
 	if err != nil {
-		ctx.JSON(http.StatusNonAuthoritativeInfo, "Order Not Found")
+		ctx.JSON(http.StatusNoContent, "Order Not Found")
 		return
 	}
 

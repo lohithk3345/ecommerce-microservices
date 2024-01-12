@@ -50,7 +50,7 @@ func (s *UserServer) GetUserById(ctx context.Context, req *buffers.GetUserByIdRe
 		return nil, status.Error(codes.NotFound, "User "+codes.NotFound.String())
 	}
 	if user.Role != constants.Customer {
-		return nil, status.Error(codes.NotFound, "User "+codes.NotFound.String())
+		return nil, status.Error(codes.Canceled, "User "+codes.Canceled.String())
 	}
 
 	log.Println("Found User")
